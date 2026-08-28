@@ -3,13 +3,13 @@ export const bab5LedRumble = {
   moduleId: 'bluepad32',
   title: 'Bab 5: Fitur Lanjutan - LED RGB, Rumble & PS5 Adaptive Triggers',
   subtitle: 'Mengendalikan warna Lightbar gamepad, haptic force-feedback motor getar, fitur Adaptive Triggers PS5 DualSense, dan multi-gamepad.',
-  readingTime: '13 min',
+  readingTime: '14 min',
   level: 'Lanjutan',
   tags: ['RGB LED', 'Rumble', 'Force Feedback', 'PS5 DualSense', 'Adaptive Triggers', 'Multi-Controller', 'Haptic'],
   hardwareNeeded: [
-    'ESP32 Board',
-    'Gamepad Bluetooth (PS4 / PS5 DualSense / Xbox One / Switch Pro)',
-    'Komputer & Arduino IDE'
+    'ESP32 Board (ESP-WROOM-32 / DevKit V1)',
+    'Gamepad Bluetooth (PS5 DualSense / PS4 DualShock 4 / Xbox / Switch Pro)',
+    'Komputer & Arduino IDE 2.x'
   ],
   prerequisites: ['Telah menyelesaikan Bab 3 & Bab 4'],
   sections: [
@@ -65,7 +65,7 @@ myGamepad->playDualRumble(0, 300, 0x40, 0x80);`
     {
       type: 'heading',
       level: 2,
-      text: '3. Apa itu PS5 DualSense Adaptive Triggers & Dukungannya di Bluepad32'
+      text: '3. PS5 DualSense Adaptive Triggers & Haptic Response'
     },
     {
       type: 'callout',
@@ -96,10 +96,111 @@ myGamepad->playDualRumble(0, 300, 0x40, 0x80);`
       ]
     },
     {
-      type: 'callout',
-      variant: 'tip',
-      title: 'Contoh Penerapan Nyata pada Robotika',
-      text: 'Ketika sensor ultrasonik pada mobil robot mendeteksi dinding di depan (< 20 cm), ESP32 dapat memicu efek Resistance maksimal pada trigger R2 (Gas) sehingga jari pengguna merasakan tahanan keras dan secara alami berhenti menekan gas!'
+      type: 'heading',
+      level: 2,
+      text: 'Contoh Kode Lengkap: Uji Coba Haptic Feedback & Dynamic LED Lightbar'
+    },
+    {
+      type: 'paragraph',
+      content: `Unggah kode berikut ke ESP32 kamu untuk menguji interaksi **LED RGB dinamis**, **pembacaan Trigger L2/R2 analog presisi 10-bit**, dan **umpan balik getaran Haptic Dual Rumble** secara real-time:`
+    },
+    {
+      type: 'code',
+      language: 'cpp',
+      filename: 'PS5_DualSense_Haptic_LED_Tester.ino',
+      code: `#include <Bluepad32.h>
+
+GamepadPtr myGamepad = nullptr;
+
+void onConnectedGamepad(GamepadPtr gp) {
+    if (myGamepad == nullptr) {
+        Serial.printf("[INFO] Controller Terhubung: %s\\n", gp->getModelName().c_str());
+        Serial.printf("[INFO] Battery Level: %d%%\\n", (gp->battery() * 100) / 255);
+        
+        // Beri sambutan warna Biru Cyan dan getaran halus
+        gp->setColorLED(0, 242, 254);
+        gp->setRumble(150, 100);
+        
+        myGamepad = gp;
+    }
+}
+
+void onDisconnectedGamepad(GamepadPtr gp) {
+    if (myGamepad == gp) {
+        Serial.println("[WARN] Controller Terputus!");
+        myGamepad = nullptr;
+    }
+}
+
+void processDualSense(GamepadPtr gp) {
+    // 1. Baca data analog trigger L2 (Brake) dan R2 (Throttle) [Rentang: 0 - 1023]
+    int l2_brake = gp->brake();
+    int r2_throttle = gp->throttle();
+    uint16_t btns = gp->buttons();
+
+    // 2. Dinamis Ubah Warna LED Berdasarkan Tekanan Gas R2:
+    // Semakin dalam R2 ditekan -> Warna berubah dari Hijau ke Merah!
+    if (r2_throttle > 50) {
+        int redVal = map(r2_throttle, 0, 1023, 0, 255);
+        int greenVal = map(r2_throttle, 0, 1023, 255, 0);
+        gp->setColorLED(redVal, greenVal, 0);
+    } 
+    // Jika L2 (Rem) ditekan dalam -> LED Merah Terang
+    else if (l2_brake > 300) {
+        gp->setColorLED(255, 0, 0);
+    } 
+    else {
+        // Mode Standby (Biru)
+        gp->setColorLED(0, 150, 255);
+    }
+
+    // 3. Efek Haptic Force Feedback saat Tombol Ditekan:
+    
+    // Tombol X / Cross -> Getaran Ringan Cepat (Soft Haptic)
+    if (btns & BUTTON_A) {
+        Serial.println(">> Pemicu Haptic Soft Click!");
+        gp->playDualRumble(0, 100, 0x80, 0x00); // Motor kanan frekuensi tinggi
+        delay(120);
+    }
+
+    // Tombol Circle / B -> Getaran Berat (Hard Impact / Rem Darurat)
+    if (btns & BUTTON_B) {
+        Serial.println(">> Pemicu Haptic Heavy Impact!");
+        gp->playDualRumble(0, 300, 0x00, 0xFF); // Motor kiri frekuensi berat
+        delay(320);
+    }
+
+    // Tombol Triangle / Y -> Getaran Dual Penuh (Full Rumble)
+    if (btns & BUTTON_Y) {
+        Serial.println(">> Pemicu Dual Rumble Max!");
+        gp->playDualRumble(0, 400, 0xFF, 0xFF);
+        delay(420);
+    }
+
+    // Jika Gas R2 ditekan maksimal (> 1000), beri sensasi getaran mesin RPM tinggi
+    if (r2_throttle > 1000) {
+        gp->playDualRumble(0, 50, 0x60, 0x40);
+    }
+}
+
+void setup() {
+    Serial.begin(115200);
+    delay(1000);
+    Serial.println("=== DualSense / Gamepad Haptic & LED Tester ===");
+    
+    BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
+}
+
+void loop() {
+    BP32.update();
+
+    if (myGamepad && myGamepad->isConnected()) {
+        processDualSense(myGamepad);
+    }
+
+    delay(20);
+}`,
+      explanation: 'Kode di atas memadukan fungsi setColorLED(), pembacaan analog trigger 10-bit brake()/throttle(), dan fungsi playDualRumble().'
     },
     {
       type: 'heading',
@@ -168,15 +269,15 @@ void loop() {
     },
     {
       type: 'quiz',
-      question: 'Apa fungsi utama mekanisme gir mikro motor pada Adaptive Triggers PS5 DualSense yang didukung oleh Bluepad32?',
+      question: 'Bagaimana cara memicu efek getaran dual haptic presisi (motor kiri berat dan motor kanan ringan) pada Bluepad32?',
       options: [
-        'Hanya untuk menyalakan lampu LED di tombol L2/R2',
-        'Mengubah resistansi fisik/kekakuan tombol pelatuk dan memberikan umpan balik getaran terarah (force feedback) ke jari pemain',
-        'Mendinginkan baterai controller saat bermain game',
-        'Mengubah controller menjadi mikrofon nirkabel'
+        'gamepad->playDualRumble(delayMs, durationMs, weakMagnitude, strongMagnitude);',
+        'gamepad->shakeLeftRight(100);',
+        'analogWrite(RUMBLE_PIN, 255);',
+        'BP32.triggerDualVibe();'
       ],
-      correctIndex: 1,
-      explanation: 'Adaptive Triggers menggunakan motor dan gir untuk menciptakan sensasi tahanan variabel (seperti pedal rem keras atau tarikan busur) dan getaran recoil pada jari pengguna.'
+      correctIndex: 0,
+      explanation: 'Fungsi playDualRumble(delay, duration, weak, strong) memungkinkan pengendalian independen antara motor getar frekuensi tinggi (weak) dan motor getar bobot berat (strong).'
     }
   ]
 };
