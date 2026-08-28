@@ -131,141 +131,140 @@ void loop() {
     }
     
     delay(20); // Interval pembacaan 50Hz (responsif dan ramah CPU)
-}`,explanation:`Fungsi applyDeadzone() memfilter noise potensial mekanik joystick ketika berada di posisi istirahat netral.`},{type:`heading`,level:2,text:`Simulasi Pembacaan Input`},{type:`paragraph`,content:`Gunakan visualizer di bawah ini untuk melihat bagaimana data analog X/Y dan tombol terbaca secara dinamis:`},{type:`gamepad-visualizer`},{type:`quiz`,question:`Berapa rentang nilai pembacaan axis joystick analog kiri (axisX dan axisY) pada Bluepad32?`,options:[`0 sampai 255 (8-bit unsigned)`,`-511 sampai 512 (Signed)`,`0 sampai 1023 (10-bit analog)`,`-1.0 sampai +1.0 (Float)`],correctIndex:1,explanation:`Bluepad32 mengembalikan nilai joystick integer bertanda (signed) dalam rentang -511 hingga 512 (0 adalah titik tengah netral).`}]},{id:`bluepad32-bab-4`,moduleId:`bluepad32`,title:`Bab 4: Proyek Praktis - Robot RC Car Gamepad Controller`,subtitle:`Membangun mobil robot RC kendali gamepad PS4 / Xbox dengan ESP32, Motor Driver TB6612FNG / L298N, dan kemudi diferensial PWM halus.`,readingTime:`18 min`,level:`Menengah`,tags:[`Proyek`,`RC Car`,`Motor Driver`,`TB6612FNG`,`L298N`,`PWM`,`Robotics`],hardwareNeeded:[`ESP32 DevKit V1 Board`,`Motor Driver TB6612FNG (disarankan) atau L298N`,`2x DC Gearbox Motor TT (Yellow Motor)`,`Chassis 2WD Robot Kit + 1x Caster Wheel`,`Baterai Li-ion 18650 2S (7.4V) + Holder Baterai`,`Gamepad Bluetooth (PS4 / PS5 / Xbox / Switch Pro)`,`Kabel Jumper Male-Female & Male-Male`],prerequisites:[`Telah menyelesaikan Bab 1, 2, dan 3`],sections:[{type:`paragraph`,content:`Pada bab ini, kita akan menggabungkan semua materi yang telah dipelajari untuk membuat proyek nyata: **Mobil Robot RC Pintar** yang dikendalikan dengan joystick analog gamepad secara *smooth* dan presisi menggunakan modulasi lebar pulsa (PWM LEDC ESP32).`},{type:`heading`,level:2,text:`Skema Rangkaian Pinout & Wiring`},{type:`paragraph`,content:`Berikut adalah tabel sambungan kabel antara ESP32, Motor Driver TB6612FNG / L298N, dan Baterai:`},{type:`wiring`,pins:[{espPin:`GPIO 18`,targetComponent:`Motor Driver`,targetPin:`PWMA (Speed Kiri)`,wireColor:`#00f2fe`,note:`PWM Kecepatan Motor Kiri`},{espPin:`GPIO 19`,targetComponent:`Motor Driver`,targetPin:`AIN1 (Dir Kiri 1)`,wireColor:`#9d4edd`,note:`Arah Maju Motor Kiri`},{espPin:`GPIO 21`,targetComponent:`Motor Driver`,targetPin:`AIN2 (Dir Kiri 2)`,wireColor:`#c77dff`,note:`Arah Mundur Motor Kiri`},{espPin:`GPIO 22`,targetComponent:`Motor Driver`,targetPin:`PWMB (Speed Kanan)`,wireColor:`#38bdf8`,note:`PWM Kecepatan Motor Kanan`},{espPin:`GPIO 23`,targetComponent:`Motor Driver`,targetPin:`BIN1 (Dir Kanan 1)`,wireColor:`#f59e0b`,note:`Arah Maju Motor Kanan`},{espPin:`GPIO 25`,targetComponent:`Motor Driver`,targetPin:`BIN2 (Dir Kanan 2)`,wireColor:`#fbbf24`,note:`Arah Mundur Motor Kanan`},{espPin:`GPIO 33`,targetComponent:`TB6612FNG`,targetPin:`STBY (Standby Pin)`,wireColor:`#10b981`,note:`Harus HIGH agar driver aktif`},{espPin:`GND`,targetComponent:`Baterai & Driver`,targetPin:`GND Bersama (Common GND)`,wireColor:`#334155`,note:`Wajib Common Ground!`},{espPin:`VIN (5V)`,targetComponent:`Baterai 7.4V Step-down / 5V BEC`,targetPin:`5V Output`,wireColor:`#ef4444`,note:`Tegangan masukan ESP32`}],notes:`PENTING: Selalu satukan kabel GND baterai, GND motor driver, dan GND ESP32 (Common Ground) agar sinyal PWM stabil!`},{type:`callout`,variant:`danger`,title:`Perhatian Daya & Motor Surge`,text:`JANGAN PERNAH menyuplai motor DC dari pin 3.3V atau 5V ESP32 langsung! Motor DC dapat menarik arus spike hingga 1 Ampere saat start yang akan merusak chip regulator ESP32 atau menyebabkan Brownout Reset terus menerus.`},{type:`heading`,level:2,text:`Kode Program Lengkap (Arcade Drive Controller)`},{type:`paragraph`,content:`Kode berikut mengimplementasikan algoritma **Arcade Drive** (Throttle di stik Y dan Kemudi di stik X atau Trigger R2 untuk gas dan Stik Kiri untuk belok):`},{type:`code`,language:`cpp`,filename:`ESP32_Bluepad32_RC_Car.ino`,code:`#include <Bluepad32.h>
+}`,explanation:`Fungsi applyDeadzone() memfilter noise potensial mekanik joystick ketika berada di posisi istirahat netral.`},{type:`heading`,level:2,text:`Simulasi Pembacaan Input`},{type:`paragraph`,content:`Gunakan visualizer di bawah ini untuk melihat bagaimana data analog X/Y dan tombol terbaca secara dinamis:`},{type:`gamepad-visualizer`},{type:`quiz`,question:`Berapa rentang nilai pembacaan axis joystick analog kiri (axisX dan axisY) pada Bluepad32?`,options:[`0 sampai 255 (8-bit unsigned)`,`-511 sampai 512 (Signed)`,`0 sampai 1023 (10-bit analog)`,`-1.0 sampai +1.0 (Float)`],correctIndex:1,explanation:`Bluepad32 mengembalikan nilai joystick integer bertanda (signed) dalam rentang -511 hingga 512 (0 adalah titik tengah netral).`}]},{id:`bluepad32-bab-4`,moduleId:`bluepad32`,title:`Bab 4: Proyek Praktis - Robot RC Car Gamepad Controller`,subtitle:`Membangun mobil robot RC kendali gamepad PS4 / Xbox dengan ESP32, Driver Motor 4-Channel PWM, dan kemudi D-Pad serta Stik Analog.`,readingTime:`18 min`,level:`Menengah`,tags:[`Proyek`,`RC Car`,`Motor Driver`,`L298N`,`L9110S`,`PWM`,`D-Pad`,`Robotics`],hardwareNeeded:[`ESP32 DevKit V1 Board (30-Pin / 38-Pin)`,`Motor Driver Dual H-Bridge (L298N / L9110S / Mini Driver)`,`2x DC Gearbox Motor TT (Yellow Motor)`,`Chassis 2WD Robot Kit + 1x Caster Wheel`,`Baterai Li-ion 18650 2S (7.4V) + Holder Baterai`,`Gamepad Bluetooth (PS4 / PS5 / Xbox / Switch Pro)`,`Kabel Jumper Female-Female & Male-Female`],prerequisites:[`Telah menyelesaikan Bab 1, 2, dan 3`],sections:[{type:`paragraph`,content:`Pada bab ini, kita akan membuat proyek nyata: **Mobil Robot RC Pintar** yang dikendalikan dengan tombol arah **D-Pad** dan **Joystick Analog** menggunakan driver motor 4-pin (IN1, IN2, IN3, IN4) dengan modulasi lebar pulsa (**Hardware PWM LEDC ESP32**).`},{type:`heading`,level:2,text:`Skema Rangkaian Pinout & Wiring`},{type:`paragraph`,content:`Sambungkan pin ESP32 ke modul Motor Driver (L298N / L9110S) dan Baterai sesuai tabel berikut:`},{type:`wiring`,pins:[{espPin:`GPIO 12`,targetComponent:`Motor Driver`,targetPin:`IN1 (Motor Kiri Maju)`,wireColor:`#00f2fe`,note:`LEDC Channel 0`},{espPin:`GPIO 14`,targetComponent:`Motor Driver`,targetPin:`IN2 (Motor Kiri Mundur)`,wireColor:`#9d4edd`,note:`LEDC Channel 1`},{espPin:`GPIO 13`,targetComponent:`Motor Driver`,targetPin:`IN3 (Motor Kanan Maju)`,wireColor:`#f59e0b`,note:`LEDC Channel 2`},{espPin:`GPIO 27`,targetComponent:`Motor Driver`,targetPin:`IN4 (Motor Kanan Mundur)`,wireColor:`#10b981`,note:`LEDC Channel 3`},{espPin:`GND`,targetComponent:`Baterai & Driver`,targetPin:`GND Bersama (Common Ground)`,wireColor:`#334155`,note:`Wajib Common GND!`},{espPin:`VIN (5V)`,targetComponent:`Regulator / Output Driver 5V`,targetPin:`5V Power In`,wireColor:`#ef4444`,note:`Daya input ESP32`}],notes:`PENTING: Selalu satukan kabel GND baterai, GND motor driver, dan GND ESP32 (Common Ground) agar sinyal PWM stabil!`},{type:`callout`,variant:`danger`,title:`Perhatian Daya Baterai!`,text:`Jangan memberi daya motor DC langsung dari pin 3.3V ESP32! Motor DC membutuhkan arus besar yang harus disuplai langsung dari baterai eksternal (7.4V Li-Ion).`},{type:`heading`,level:2,text:`Metode 1: Kode Pembelajaran Dasar (Kontrol D-Pad Digital)`},{type:`paragraph`,content:"Berikut adalah kode standar pembelajaran yang menggunakan fungsi pembatas nilai `batasi()` dan fungsi penggerak terpadu `drive(left, right)` untuk mengontrol 4 channel PWM H-Bridge berdasarkan tombol **D-Pad**:"},{type:`code`,language:`cpp`,filename:`ESP32_Bluepad32_RC_Car_DPad.ino`,code:`#include <Bluepad32.h>
 
-// Definisi Pin Motor Driver
-#define PIN_PWMA  18
-#define PIN_AIN1  19
-#define PIN_AIN2  21
-#define PIN_PWMB  22
-#define PIN_BIN1  23
-#define PIN_BIN2  25
-#define PIN_STBY  33
-
-// Konfigurasi PWM ESP32
-const int PWM_FREQ = 20000;   // 20 kHz (suara motor hening tidak berdengung)
-const int PWM_RES  = 8;       // Resolusi 8-bit (nilai 0 - 255)
-const int CH_LEFT  = 0;
-const int CH_RIGHT = 1;
+#define MOTOR_LEFT_IN1  12  
+#define MOTOR_LEFT_IN2  14  
+#define MOTOR_RIGHT_IN3 13  
+#define MOTOR_RIGHT_IN4 27  
+#define SPEED           255  // Kecepatan motor (Rentang: 0 - 255)
 
 GamepadPtr myGamepad = nullptr;
-const int DEADZONE = 35;
 
-void onConnectedGamepad(GamepadPtr gp) {
-    if (myGamepad == nullptr) {
-        Serial.printf("[CAR] Gamepad terhubung: %s\\n", gp->getModelName().c_str());
-        // Beri warna hijau pada LED controller tanda siap jalan
-        gp->setColorLED(0, 255, 0);
-        myGamepad = gp;
-    }
+// Pembatas nilai manual pengganti constrain()
+int batasi(int val, int minVal, int maxVal) {
+  if (val < minVal) return minVal;
+  if (val > maxVal) return maxVal;
+  return val;
 }
 
-void onDisconnectedGamepad(GamepadPtr gp) {
-    if (myGamepad == gp) {
-        Serial.println("[CAR] Gamepad terputus! Motor EMERGENCY STOP!");
-        stopMotors();
-        myGamepad = nullptr;
-    }
+// Fungsi penggerak 4-channel H-Bridge PWM
+void drive(int left, int right) {
+  left = batasi(left, -255, 255);
+  right = batasi(right, -255, 255);
+
+  ledcWrite(0, left > 0 ? left : 0);
+  ledcWrite(1, left < 0 ? -left : 0);
+  ledcWrite(2, right > 0 ? right : 0);
+  ledcWrite(3, right < 0 ? -right : 0);
 }
 
-void setupMotors() {
-    pinMode(PIN_AIN1, OUTPUT);
-    pinMode(PIN_AIN2, OUTPUT);
-    pinMode(PIN_BIN1, OUTPUT);
-    pinMode(PIN_BIN2, OUTPUT);
-    pinMode(PIN_STBY, OUTPUT);
-    digitalWrite(PIN_STBY, HIGH); // Aktifkan TB6612FNG
-
-    // Setup LEDC PWM Channels
-    ledcAttachChannel(PIN_PWMA, PWM_FREQ, PWM_RES, CH_LEFT);
-    ledcAttachChannel(PIN_PWMB, PWM_FREQ, PWM_RES, CH_RIGHT);
-
-    stopMotors();
+void onConnected(GamepadPtr gp) { 
+  myGamepad = gp; 
+  Serial.printf("[INFO] Controller Terhubung: %s\\n", gp->getModelName().c_str());
 }
 
-void setMotorLeft(int speed) {
-    // speed: -255 s/d 255
-    if (speed > 0) {
-        digitalWrite(PIN_AIN1, HIGH);
-        digitalWrite(PIN_AIN2, LOW);
-        ledcWrite(PIN_PWMA, speed);
-    } else if (speed < 0) {
-        digitalWrite(PIN_AIN1, LOW);
-        digitalWrite(PIN_AIN2, HIGH);
-        ledcWrite(PIN_PWMA, abs(speed));
-    } else {
-        digitalWrite(PIN_AIN1, LOW);
-        digitalWrite(PIN_AIN2, LOW);
-        ledcWrite(PIN_PWMA, 0);
-    }
-}
-
-void setMotorRight(int speed) {
-    // speed: -255 s/d 255
-    if (speed > 0) {
-        digitalWrite(PIN_BIN1, HIGH);
-        digitalWrite(PIN_BIN2, LOW);
-        ledcWrite(PIN_PWMB, speed);
-    } else if (speed < 0) {
-        digitalWrite(PIN_BIN1, LOW);
-        digitalWrite(PIN_BIN2, HIGH);
-        ledcWrite(PIN_PWMB, abs(speed));
-    } else {
-        digitalWrite(PIN_BIN1, LOW);
-        digitalWrite(PIN_BIN2, LOW);
-        ledcWrite(PIN_PWMB, 0);
-    }
-}
-
-void stopMotors() {
-    setMotorLeft(0);
-    setMotorRight(0);
-}
-
-void controlCar(GamepadPtr gp) {
-    // Membaca stik kiri: Sumbu Y (Maju/Mundur), Sumbu X (Belok Kiri/Kanan)
-    int rawY = -gp->axisY(); // Dibalik karena dorong ke atas bernilai negatif
-    int rawX = gp->axisX();
-
-    if (abs(rawY) < DEADZONE) rawY = 0;
-    if (abs(rawX) < DEADZONE) rawX = 0;
-
-    // Pemetaan nilai dari (-511..512) ke (-255..255)
-    int throttle = map(rawY, -511, 512, -255, 255);
-    int steering = map(rawX, -511, 512, -255, 255);
-
-    // Hitung kecepatan diferensial roda kiri dan kanan
-    int leftSpeed  = constrain(throttle + steering, -255, 255);
-    int rightSpeed = constrain(throttle - steering, -255, 255);
-
-    // Tombol Rem Darurat (Tombol B / Circle atau Rem L2)
-    if ((gp->buttons() & BUTTON_B) || gp->brake() > 500) {
-        stopMotors();
-        gp->setRumble(128, 100); // Getar controller tanda rem darurat
-        return;
-    }
-
-    setMotorLeft(leftSpeed);
-    setMotorRight(rightSpeed);
+void onDisconnected(GamepadPtr gp) { 
+  myGamepad = nullptr; 
+  drive(0, 0); // Matikan motor saat controller terputus
+  Serial.println("[WARN] Controller Terputus!");
 }
 
 void setup() {
-    Serial.begin(115200);
-    setupMotors();
-    BP32.setup(&onConnectedGamepad, &onDisconnectedGamepad);
+  Serial.begin(115200);
+  const int pins[] = {MOTOR_LEFT_IN1, MOTOR_LEFT_IN2, MOTOR_RIGHT_IN3, MOTOR_RIGHT_IN4};
+  
+  // Konfigurasi 4 Channel PWM ESP32 (Frekuensi: 5000 Hz, Resolusi: 8-Bit)
+  for (int i = 0; i < 4; i++) {
+    ledcSetup(i, 5000, 8);
+    ledcAttachPin(pins[i], i);
+  }
+  
+  BP32.setup(&onConnected, &onDisconnected);
 }
 
 void loop() {
-    BP32.update();
+  BP32.update();
 
-    if (myGamepad && myGamepad->isConnected()) {
-        controlCar(myGamepad);
-    } else {
-        stopMotors();
-    }
+  if (myGamepad && myGamepad->isConnected() && myGamepad->hasData()) {
+    uint8_t dpad = myGamepad->dpad();
 
-    delay(20);
-}`,explanation:`Sistem penggerak Arcade Drive menghitung leftSpeed = throttle + steering dan rightSpeed = throttle - steering secara real-time.`},{type:`heading`,level:2,text:`Pinout & GPIO Explorer`},{type:`paragraph`,content:`Periksa panduan pinout ESP32 di bawah ini untuk melihat pin mana saja yang aman digunakan untuk PWM motor dan sensor tanpa mengganggu Bluetooth:`},{type:`pinout-explorer`},{type:`quiz`,question:`Mengapa frekuensi PWM motor diset ke 20.000 Hz (20 kHz) pada fungsi ledcAttachChannel?`,options:[`Agar baterai motor tidak cepat habis`,`Karena frekuensi di atas 20 kHz berada di luar batas pendengaran manusia sehingga motor tidak menimbulkan bunyi dengungan bising`,`Karena ESP32 hanya mampu memproses sinyal 20 kHz`,`Untuk mempercepat koneksi Bluetooth`],correctIndex:1,explanation:`Frekuensi PWM 20kHz berada di atas spektrum audio manusia (ultrasonik), menghasilkan perputaran motor yang sangat halus dan sunyi tanpa desingan mengganggu.`}]},{id:`bluepad32-bab-5`,moduleId:`bluepad32`,title:`Bab 5: Fitur Lanjutan - LED RGB, Rumble & Multi-Gamepad`,subtitle:`Mengendalikan warna Lightbar gamepad, haptic force-feedback motor getar, serta mengelola hingga 4 controller sekaligus pada satu ESP32.`,readingTime:`11 min`,level:`Lanjutan`,tags:[`RGB LED`,`Rumble`,`Force Feedback`,`Multi-Controller`,`Haptic`],hardwareNeeded:[`ESP32 Board`,`1 atau 2 Gamepad Bluetooth (PS4 / PS5 / Xbox One)`,`Komputer & Arduino IDE`],prerequisites:[`Telah menyelesaikan Bab 3 & Bab 4`],sections:[{type:`paragraph`,content:`Salah satu keunggulan terbesar Bluepad32 adalah dukungannya terhadap fitur hardware native pada controller komersial, seperti **Lightbar RGB (PS4/PS5)**, **Player LEDs (Switch/Wii)**, dan **Motor Getar Haptic (Rumble)** untuk memberikan umpan balik (feedback) saat robot menabrak rintangan atau baterai menipis.`},{type:`heading`,level:2,text:`1. Mengatur Warna LED Lightbar Gamepad`},{type:`paragraph`,content:"Kamu dapat mengubah warna LED pada controller PS4 / PS5 / Nintendo Switch menggunakan perintah `gamepad->setColorLED(red, green, blue)` dengan nilai intensitas 0 hingga 255:"},{type:`code`,language:`cpp`,filename:`Gamepad_LED_Control.ino`,code:`// Mengubah LED menjadi Merah (Indikasi Error / Tabrakan)
+    if (dpad & DPAD_UP)         drive(SPEED, SPEED);    // Maju
+    else if (dpad & DPAD_DOWN)  drive(-SPEED, -SPEED);  // Mundur
+    else if (dpad & DPAD_LEFT)  drive(-SPEED, SPEED);   // Belok Kiri (Putar di Tempat)
+    else if (dpad & DPAD_RIGHT) drive(SPEED, -SPEED);   // Belok Kanan (Putar di Tempat)
+    else                        drive(0, 0);            // Diam / Berhenti
+  }
+  
+  delay(15);
+}`,explanation:`Fungsi drive(left, right) secara cerdas memisahkan nilai positif untuk maju dan nilai negatif (-val) untuk mundur pada masing-masing channel PWM.`},{type:`callout`,variant:`info`,title:`Memahami Logika Fungsi drive(left, right)`,text:`Ketika left = 255 (Maju), Channel 0 (IN1) bernilai 255 dan Channel 1 (IN2) bernilai 0. Ketika left = -255 (Mundur), Channel 0 bernilai 0 dan Channel 1 bernilai 255. Sangat ringkas dan aman tanpa terjadi korsleting logika!`},{type:`heading`,level:2,text:`Metode 2: Upgrade ke Analog Joystick (Smooth Speed & Steering)`},{type:`paragraph`,content:"Dengan fungsi `drive()` yang sama persis di atas, kita dapat meningkatkan kemampuan robot agar bisa dikendalikan secara bertahap dan halus (**proporsional**) menggunakan stik analog kiri:"},{type:`code`,language:`cpp`,filename:`ESP32_Bluepad32_RC_Car_Analog.ino`,code:`#include <Bluepad32.h>
+
+#define MOTOR_LEFT_IN1  12  
+#define MOTOR_LEFT_IN2  14  
+#define MOTOR_RIGHT_IN3 13  
+#define MOTOR_RIGHT_IN4 27  
+const int DEADZONE      = 35;
+
+GamepadPtr myGamepad = nullptr;
+
+int batasi(int val, int minVal, int maxVal) {
+  if (val < minVal) return minVal;
+  if (val > maxVal) return maxVal;
+  return val;
+}
+
+void drive(int left, int right) {
+  left = batasi(left, -255, 255);
+  right = batasi(right, -255, 255);
+
+  ledcWrite(0, left > 0 ? left : 0);
+  ledcWrite(1, left < 0 ? -left : 0);
+  ledcWrite(2, right > 0 ? right : 0);
+  ledcWrite(3, right < 0 ? -right : 0);
+}
+
+void onConnected(GamepadPtr gp) { myGamepad = gp; }
+void onDisconnected(GamepadPtr gp) { myGamepad = nullptr; drive(0, 0); }
+
+void setup() {
+  Serial.begin(115200);
+  const int pins[] = {MOTOR_LEFT_IN1, MOTOR_LEFT_IN2, MOTOR_RIGHT_IN3, MOTOR_RIGHT_IN4};
+  
+  for (int i = 0; i < 4; i++) {
+    ledcSetup(i, 5000, 8);
+    ledcAttachPin(pins[i], i);
+  }
+  
+  BP32.setup(&onConnected, &onDisconnected);
+}
+
+void loop() {
+  BP32.update();
+
+  if (myGamepad && myGamepad->isConnected() && myGamepad->hasData()) {
+    // 1. Baca Joystick Kiri: Sumbu Y (Maju/Mundur) & Sumbu X (Belok)
+    int rawY = -myGamepad->axisY(); // Dibalik karena dorong ke atas bernilai negatif
+    int rawX = myGamepad->axisX();
+
+    // 2. Terapkan Deadzone
+    if (abs(rawY) < DEADZONE) rawY = 0;
+    if (abs(rawX) < DEADZONE) rawX = 0;
+
+    // 3. Konversi nilai (-511..512) ke kecepatan PWM (-255..255)
+    int throttle = map(rawY, -511, 512, -255, 255);
+    int steer    = map(rawX, -511, 512, -255, 255);
+
+    // 4. Kalkulasi Diferensial Steering Arcade
+    int leftSpeed  = throttle + steer;
+    int rightSpeed = throttle - steer;
+
+    drive(leftSpeed, rightSpeed);
+  } else {
+    drive(0, 0);
+  }
+  
+  delay(15);
+}`,explanation:`Metode analog memungkinkan kecepatan bertambah perlahan sesuai seberapa jauh joystick didorong oleh pemain.`},{type:`heading`,level:2,text:`Pinout & GPIO Explorer`},{type:`paragraph`,content:`Periksa panduan pinout ESP32 di bawah ini untuk melihat detail karakteristik pin GPIO 12, 13, 14, dan 27:`},{type:`pinout-explorer`},{type:`quiz`,question:`Jika fungsi drive(-150, 150) dipanggil, bagaimanakah kondisi pergerakan mobil robot?`,options:[`Maju lurus ke depan dengan kecepatan 150`,`Mundur lurus ke belakang dengan kecepatan 150`,`Berputar di tempat ke arah Kiri (roda kiri mundur 150, roda kanan maju 150)`,`Robot berhenti total`],correctIndex:2,explanation:`Nilai negatif (-150) memutar roda kiri ke belakang, dan nilai positif (150) memutar roda kanan ke depan, sehingga robot berputar pivot ke kiri.`}]},{id:`bluepad32-bab-5`,moduleId:`bluepad32`,title:`Bab 5: Fitur Lanjutan - LED RGB, Rumble & Multi-Gamepad`,subtitle:`Mengendalikan warna Lightbar gamepad, haptic force-feedback motor getar, serta mengelola hingga 4 controller sekaligus pada satu ESP32.`,readingTime:`11 min`,level:`Lanjutan`,tags:[`RGB LED`,`Rumble`,`Force Feedback`,`Multi-Controller`,`Haptic`],hardwareNeeded:[`ESP32 Board`,`1 atau 2 Gamepad Bluetooth (PS4 / PS5 / Xbox One)`,`Komputer & Arduino IDE`],prerequisites:[`Telah menyelesaikan Bab 3 & Bab 4`],sections:[{type:`paragraph`,content:`Salah satu keunggulan terbesar Bluepad32 adalah dukungannya terhadap fitur hardware native pada controller komersial, seperti **Lightbar RGB (PS4/PS5)**, **Player LEDs (Switch/Wii)**, dan **Motor Getar Haptic (Rumble)** untuk memberikan umpan balik (feedback) saat robot menabrak rintangan atau baterai menipis.`},{type:`heading`,level:2,text:`1. Mengatur Warna LED Lightbar Gamepad`},{type:`paragraph`,content:"Kamu dapat mengubah warna LED pada controller PS4 / PS5 / Nintendo Switch menggunakan perintah `gamepad->setColorLED(red, green, blue)` dengan nilai intensitas 0 hingga 255:"},{type:`code`,language:`cpp`,filename:`Gamepad_LED_Control.ino`,code:`// Mengubah LED menjadi Merah (Indikasi Error / Tabrakan)
 myGamepad->setColorLED(255, 0, 0);
 
 // Mengubah LED menjadi Hijau (Indikasi Siap / OK)
